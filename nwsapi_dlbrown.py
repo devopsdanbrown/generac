@@ -1,9 +1,8 @@
 import requests
 import pgeocode
+from dateutil import parser
 
 nomi = pgeocode.Nominatim('us')
-
-# Prompt user for zip code
 
 # Prompt user for start date
 def get_zip_code():
@@ -13,19 +12,19 @@ def get_zip_code():
         zip_code = input("Enter zip code: ")
     return zip_code
 
-def get_start_date():
-    start_date = input("Enter start date (YYYY-MM-DD): ")
-    while not (start_date.isdigit()) and len(start_date) != 10:
+def get_start_date_time():
+    start_date_time = input("Enter start date (YYYY-MM-DDThh:mm:ss): ")
+    while not (start_date_time.isdigit()) and len(start_date_time) != 10:
         print("Invalid start date. Please enter a valid start date.")
-        start_date = input("Enter start date (YYYY-MM-DD): ")
-    return start_date
+        start_date_time = input("Enter start date (YYYY-MM-DDThh:mm:ss): ")
+    return start_date_time
 
-def get_end_date():
-    end_date = input("Enter end date (YYYY-MM-DD): ")
-    while not (end_date.isdigit()) and len(end_date) != 10:
+def get_end_date_time():
+    end_date_time = input("Enter end date (YYYY-MM-DDThh:mm:ss): ")
+    while not (end_date_time.isdigit()) and len(end_date_time) != 10:
         print("Invalid start date. Please enter a valid start date.")
-        end_date = input("Enter end date (YYYY-MM-DD): ")
-    return end_date
+        end_date_time = input("Enter end date (YYYY-MM-DDThh:mm:ss): ")
+    return end_date_time
 
 def get_closest_weather_station(latitude, longitude):
     url = f"https://api.weather.gov/points/{latitude},{longitude}"
@@ -43,6 +42,7 @@ def get_closest_weather_station(latitude, longitude):
     else:
         print("Failed to retrieve location data.")
 
+# Prompt user for zip code
 zip_code = get_zip_code()
 
 curentLatitude = nomi.query_postal_code(zip_code).latitude
