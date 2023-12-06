@@ -1,11 +1,24 @@
+'''This module will prompt the user for their zip code and start and stop dates/times
+and pull and display NWS data for that location and timespan.
+'''
+
+from datetime import datetime
+
 import requests
 import pgeocode
-from dateutil import parser
 
 nomi = pgeocode.Nominatim('us')
 
-# Prompt user for start date
-def get_zip_code():
+def check_valid_date(date_str: str):
+    '''Checks if the date string is a valid ISO date.'''
+    try:
+        iso_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+        return iso_date
+    except ValueError:
+        return None
+
+def get_zip_code() -> str:
+    '''Prompt user for zip code.'''
     zip_code = input("Enter zip code: ")
     while not (zip_code.isdigit()) and len(zip_code) != 5:
         print("Invalid zip code. Please enter a valid zip code.")
@@ -13,20 +26,23 @@ def get_zip_code():
     return zip_code
 
 def get_start_date_time():
-    start_date_time = input("Enter start date (YYYY-MM-DDThh:mm:ss): ")
-    while not (start_date_time.isdigit()) and len(start_date_time) != 10:
+    '''Prompt user for start date.'''
+    start_date_time = input("Enter start date (YYYY-MM-DDThh:mm): ")
+    while not (iso_date := check_valid_date(start_date_time)):
         print("Invalid start date. Please enter a valid start date.")
-        start_date_time = input("Enter start date (YYYY-MM-DDThh:mm:ss): ")
-    return start_date_time
+        start_date_time = input("Enter start date (YYYY-MM-DDThh:mm): ")
+    return iso_date
 
 def get_end_date_time():
-    end_date_time = input("Enter end date (YYYY-MM-DDThh:mm:ss): ")
-    while not (end_date_time.isdigit()) and len(end_date_time) != 10:
+    '''Prompt user for end date.'''
+    end_date_time = input("Enter end date (YYYY-MM-DDThh:mm): ")
+    while not (iso_date := check_valid_date(end_date_time)):
         print("Invalid start date. Please enter a valid start date.")
-        end_date_time = input("Enter end date (YYYY-MM-DDThh:mm:ss): ")
-    return end_date_time
+        end_date_time = input("Enter end date (YYYY-MM-DDThh:mm): ")
+    return iso_date
 
 def get_closest_weather_station(latitude, longitude):
+    '''Queries the NWS API and returns the closest weather station.'''
     url = f"https://api.weather.gov/points/{latitude},{longitude}"
     response = requests.get(url)
     if response.status_code == 200:
@@ -42,8 +58,30 @@ def get_closest_weather_station(latitude, longitude):
     else:
         print("Failed to retrieve location data.")
 
+def fetch_historical_weather_observations(
+    station, start_time_object, end_time_object
+    ):
+    start_time = start_time_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_time = end_time_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+    url = f"https://api.weather.gov/stations/{station}/observations?start={start_time}&end={end_time}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        observations = data.get("features")
+        return observations
+    else:
+        error_messages = response.json().get("parameterErrors")
+        print("Failed to retrieve historical weather observations:")
+        print(*error_messages, sep="\n")
+
 # Prompt user for zip code
 zip_code = get_zip_code()
+
+# start_daterange = get_start_date_time()
+# end_daterange = get_end_date_time()
+
+start_daterange = datetime.strptime("2023-12-01T00:00", '%Y-%m-%dT%H:%M')
+end_daterange = datetime.strptime("2023-12-06T23:59", '%Y-%m-%dT%H:%M')
 
 curentLatitude = nomi.query_postal_code(zip_code).latitude
 
@@ -51,24 +89,18 @@ curentLongitude = nomi.query_postal_code(zip_code).longitude
 
 print (f"Current location is: ", curentLatitude, curentLongitude)
 
+print (f"Start date/time: {start_daterange}")
+print (f"End date/time: {end_daterange}")
+
 closest_station = get_closest_weather_station(curentLatitude, curentLongitude)
 
 print(f"The closest weather station is: {closest_station}")
 
-def fetch_historical_weather_observations(station):
-    url = f"https://api.weather.gov/stations/{station}/observations/latest "
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        observations = data["features"]
-        return observations
-    else:
-        print("Failed to retrieve historical weather observations.")
-
 # Rest of the code...
 
 # Fetch historical weather observations
-historical_observations = fetch_historical_weather_observations(closest_station)
+historical_observations = fetch_historical_weather_observations(
+    closest_station, start_daterange, end_daterange)
 
 # Process and use the historical observations as needed
 # ...
@@ -77,6 +109,6 @@ historical_observations = fetch_historical_weather_observations(closest_station)
 #for observation in historical_observations:
 #    print(observation["properties"]["minTemperature"], observation["properties"]["maxTemperature"])
 
-weather_data = historical_observations[0]["properties"]
+temp_data = [line.get("properties").get("temperature").get("value") for line in historical_observations]
 
-print(weather_data)
+print(temp_data)
