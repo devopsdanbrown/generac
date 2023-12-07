@@ -3,6 +3,7 @@ and pull and display NWS data for that location and timespan.
 '''
 
 from datetime import datetime
+from array import *
 
 import requests
 import pgeocode
@@ -109,6 +110,13 @@ historical_observations = fetch_historical_weather_observations(
 #for observation in historical_observations:
 #    print(observation["properties"]["minTemperature"], observation["properties"]["maxTemperature"])
 
+temp_dates = [line.get("properties").get("timestamp") for line in historical_observations]
 temp_data = [line.get("properties").get("temperature").get("value") for line in historical_observations]
 
-print(temp_data)
+#print(len(temp_dates), " dates:  ", temp_dates)
+#print(len(temp_data), " temps:  ", temp_data)
+
+#Print min and max temp for each day
+for observation in historical_observations:
+    print(observation["properties"]["timestamp"], observation["properties"]["temperature"]["value"])
+   
