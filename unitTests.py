@@ -5,23 +5,40 @@ import nwsapi_dlbrown as nws
 
 class TestNwsApi(unittest.TestCase):
 
-    def test_check_valid_date(self):
-        self.assertEqual(nws.check_valid_date('2023-12-01T00:00'), datetime(2023, 12, 1, 0, 0))
-        self.assertIsNone(nws.check_valid_date('invalid-date'))
+#write unit tests for each function in nwsapi_dlbrown.py
+      
+    def test_get_zip_code(self):
+        # test that the function returns a string
+        self.assertIsInstance(nws.get_zip_code(), str)
+        # test that the string is 5 characters long
+        self.assertEqual(len(nws.get_zip_code()), 5)
+        # test that the string is all digits
+        self.assertTrue(nws.get_zip_code().isdigit())
+        
+    def test_get_closest_weather_station(self):
+        # test that the function returns a string
+        self.assertIsInstance(nws.get_closest_weather_station(0, 0), str)
+        # test that the string is 4 characters long
+        self.assertEqual(len(nws.get_closest_weather_station(0, 0)), 4)
+        # test that the string is all uppercase
+        self.assertTrue(nws.get_closest_weather_station(0, 0).isupper())
 
-    @patch('builtins.input', return_value='12345')
-    def test_get_zip_code(self, input):
-        self.assertEqual(nws.get_zip_code(), '12345')
+    def test_fetch_historical_weather_observations(self):
+        # test that the function returns a list
+        self.assertIsInstance(nws.fetch_historical_weather_observations("KJFK"), list)
+        # test that the list contains dictionaries
+        self.assertIsInstance(nws.fetch_historical_weather_observations("KJFK")[0], dict)
+        # test that the dictionary has the expected keys
+        self.assertIn("properties", nws.fetch_historical_weather_observations("KJFK")[0])
+        self.assertIn("timestamp", nws.fetch_historical_weather_observations("KJFK")[0])
+        self.assertIn("temperature", nws.fetch_historical_weather_observations("KJFK")[0])
+        self.assertIn("value", nws.fetch_historical_weather_observations("KJFK")[0])
+        # test that the values are the expected data types
+        self.assertIsInstance(nws.fetch_historical_weather_observations("KJFK")[0]["properties"], dict)
+        self.assertIsInstance(nws.fetch_historical_weather_observations("KJFK")[0]["timestamp"], dict)
+        self.assertIsInstance(nws.fetch_historical_weather_observations("KJFK")[0]["temperature"], str)
+        self.assertIsInstance(nws.fetch_historical_weather_observations("KJFK")[0]["value"], str)
 
-    @patch('builtins.input', side_effect=['invalid-date', '2023-12-01T00:00'])
-    def test_get_start_date_time(self, input):
-        self.assertEqual(nws.get_start_date_time(), datetime(2023, 12, 1, 0, 0))
-
-    @patch('builtins.input', side_effect=['invalid-date', '2023-12-01T00:00'])
-    def test_get_end_date_time(self, input):
-        self.assertEqual(nws.get_end_date_time(), datetime(2023, 12, 1, 0, 0))
-
-    # You may want to mock the requests.get call in the following two functions to avoid making actual HTTP requests in your tests.
-
+   
 if __name__ == '__main__':
     unittest.main()

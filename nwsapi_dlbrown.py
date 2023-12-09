@@ -33,8 +33,7 @@ def get_closest_weather_station(latitude, longitude) -> str | None:
         print("Failed to retrieve location data.")
 
 def fetch_historical_weather_observations(station: str) -> list | None:
-    start_time = start_time_object.strftime("%Y-%m-%dT%H:%M:%SZ")
-    end_time = end_time_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+    '''Queries the NWS API and returns historical weather observations.'''
     url = f"https://api.weather.gov/stations/{station}/observations"
     print(url)
     response = requests.get(url)
