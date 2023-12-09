@@ -3,7 +3,7 @@ and pull and display NWS data for that location and timespan.
 '''
 
 from datetime import datetime
-from array import *
+from array import array
 
 import requests
 import pgeocode
